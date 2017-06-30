@@ -44,17 +44,37 @@ class ProgressBar(object):
             end_str = '\n'
             self.status = status or self.fin_status
         print(self.__get_info(), end=end_str)
-def download(n ='王奕晟'):
+        print()
+def download(n ='王奕晟',p = 1):
     ReportList = []
     c = pq(url='http://www.ximalaya.com/search/'+n+'/t2',headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'})
     DomTree = c('.report_listView a')
+    DomT = c('.pagingBar  a')
     for my_div in DomTree.items():
         if my_div.hasClass('soundReport_soundname'):
             URL = 'http://www.ximalaya.com' + my_div.attr('href')
             r = my_div.html()
             l = my_div.attr('href').split('/')[-1]
             ReportList.append({'url': URL, 'name': r,'id': l})
+    if DomT.size()>0:
+        for d in DomT.items():
+            if d.hasClass('pagingBar_page'):
+                page =d.html()
+        page = int(page)
+        for i in range(page):
+            if i>=(p-1):
+                break
+            d = str(i+2)
+            e = pq(url='http://www.ximalaya.com/search/'+n+'/t2p'+d,headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'})
+            DomTree = e('.report_listView a')
+            for my_div in DomTree.items():
+                if my_div.hasClass('soundReport_soundname'):
+                    URL = 'http://www.ximalaya.com' + my_div.attr('href')
+                    r = my_div.html()
+                    l = my_div.attr('href').split('/')[-1]
+                    ReportList.append({'url': URL, 'name': r,'id': l})
 
     downloadurl = []
         
@@ -65,25 +85,26 @@ def download(n ='王奕晟'):
         objectid = json.loads(jsondata)["play_path_64"]
         downloadurl.append({'url':objectid,'name':report['name']})
 
-    if not os.path.exists('./Video'):
-        os.makedirs('./Video')
+    if not os.path.exists('./Voice'):
+        os.makedirs('./Voice')
     for item in downloadurl:
-        url = item['url']
-        name = item['name']
-        with closing(requests.get(url, stream=True)) as response:
-            chunk_size = 1024
-            content_size = int(response.headers['content-length'])
-            file_D='./Video/' + name + '.mp3'
-            if(os.path.exists(file_D)  and os.path.getsize(file_D)==content_size):
-                print('跳过'+name)
-            else:
-                progress = ProgressBar(name, total=content_size, unit="KB", chunk_size=chunk_size, run_status="正在下载",fin_status="下载完成")
-                with open(file_D, "wb") as file:
-                    for data in response.iter_content(chunk_size=chunk_size):
-                        file.write(data)
-                        progress.refresh(count=len(data))
+        if item['url']:
+            url = item['url']
+            name = item['name']
+            with closing(requests.get(url, stream=True)) as response:
+                chunk_size = 1024
+                content_size = int(response.headers['content-length'])
+                file_D='./Voice/' + name + '.mp3'
+                if(os.path.exists(file_D)  and os.path.getsize(file_D)==content_size):
+                    print('跳过'+name)
+                else:
+                    progress = ProgressBar(name, total=content_size, unit="KB", chunk_size=chunk_size, run_status="正在下载",fin_status="下载完成")
+                    with open(file_D, "wb") as file:
+                        for data in response.iter_content(chunk_size=chunk_size):
+                            file.write(data)
+                            progress.refresh(count=len(data))
 
 if __name__ == '__main__':
-    download()
+    download(n ='神经',p = 2)
     
     
