@@ -91,20 +91,24 @@ def download(n ='王奕晟',p = 1):
         if item['url']:
             url = item['url']
             name = item['name']
-            with closing(requests.get(url, stream=True)) as response:
-                chunk_size = 1024
-                content_size = int(response.headers['content-length'])
-                file_D='./Voice/' + name + '.mp3'
-                if(os.path.exists(file_D)  and os.path.getsize(file_D)==content_size):
-                    print('跳过'+name)
-                else:
-                    progress = ProgressBar(name, total=content_size, unit="KB", chunk_size=chunk_size, run_status="正在下载",fin_status="下载完成")
-                    with open(file_D, "wb") as file:
-                        for data in response.iter_content(chunk_size=chunk_size):
-                            file.write(data)
-                            progress.refresh(count=len(data))
+            try:
+                with closing(requests.get(url, stream=True)) as response:
+                    chunk_size = 1024
+                    content_size = int(response.headers['content-length'])
+                    file_D='./Voice/' + name + '.m4a'
+                    if(os.path.exists(file_D)  and os.path.getsize(file_D)==content_size):
+                        print('跳过'+name)
+                    else:
+                        progress = ProgressBar(name, total=content_size, unit="KB", chunk_size=chunk_size, run_status="正在下载",fin_status="下载完成")
+                        with open(file_D, "wb") as file:
+                            for data in response.iter_content(chunk_size=chunk_size):
+                                file.write(data)
+                                progress.refresh(count=len(data))
+            except:
+                pass
+                print('遗漏')
 
 if __name__ == '__main__':
-    download(n ='神经',p = 2)
+    download(n ='逻辑',p = 2)
     
     
